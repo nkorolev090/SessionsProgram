@@ -1,26 +1,26 @@
-using Core.Managers;
+using Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using SeccionsProgamAPI.Models;
 
 namespace SeccionsProgamAPI.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
     public class AccountController : ControllerBase
     {
-        private readonly ISessionManager _sessionManager;
+        private readonly ISessionService _sessionService;
 
-        public AccountController(ISessionManager sessionManager)
+        public AccountController(ISessionService sessionManager)
         {
-            _sessionManager = sessionManager;
+            _sessionService = sessionManager;
         }
 
-        [HttpGet]
+        [HttpGet("isSessionActive")]
         public ActionResult<string> IsSessionActive(string sessionId)
         {
             try
             {
-                var result = _sessionManager.IsSessionActive(sessionId);
+                var result = _sessionService.IsSessionActive(sessionId);
                 return Ok(result ? "Сессия активна" : "Сессия неактивна");
             }
             catch (Exception ex)
@@ -30,12 +30,18 @@ namespace SeccionsProgamAPI.Controllers
 
         }
 
-        [HttpPost]
-        public ActionResult<string> AuthenticateUser(UserDTO user)
+        [HttpPost("authenticateUser")]
+        public async Task<ActionResult<string>> AuthenticateUser(UserDTO user)
         {
             try
             {
-                var result = _sessionManager.AuthenticateUser(user.Login, user.Password);
+                var result = await _sessionService.AuthenticateUser(user.Login, user.Password);
+
+                if(result == null)
+                {
+                    return Unauthorized();
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -44,12 +50,12 @@ namespace SeccionsProgamAPI.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete("deleteSession")]
         public IActionResult DeleteSession(string sessionId)
         {
             try
             {
-                var result = _sessionManager.DeleteSession(sessionId);
+                var result = _sessionService.DeleteSession(sessionId);
 
                 if (result)
                 {

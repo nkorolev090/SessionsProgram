@@ -1,11 +1,11 @@
-using Core.Managers;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+using Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddSingleton<ISessionManager, SessionManager>();
+builder.Services.AddSingleton<ISessionService, SessionService>();
+builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

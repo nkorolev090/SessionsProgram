@@ -1,39 +1,37 @@
 ﻿using Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Core.Managers
+namespace Core.Services
 {
-    public interface ISessionManager
+    public interface ISessionService
     {
         bool IsSessionActive(string sessionId);
 
-        string? AuthenticateUser(string login, string password);
+        Task<string?> AuthenticateUser(string login, string password);
 
         bool DeleteSession(string sessionId);
     }
 
-    public class SessionManager : ISessionManager
+    public class SessionService : ISessionService
     {
         private const string FILE_PATH = "Data.txt";
 
         private Dictionary<string, User> sessions = new Dictionary<string, User>();
         private Dictionary<string, User> validUsers = new Dictionary<string, User>();
 
-        public SessionManager(string filePath = FILE_PATH)
+        private readonly IEncryptionService encriptionService;
+
+        public SessionService(IEncryptionService encriptionService, string filePath = FILE_PATH)
         {
+            this.encriptionService = encriptionService;
+
             try
             {
                 LoadUsers(filePath);
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine($"Failure to open file:  {ex}");
             }
-           
         }
 
         private void LoadUsers(string filePath)
@@ -55,9 +53,11 @@ namespace Core.Managers
             return sessions.ContainsKey(sessionId);
         }
 
-        public string? AuthenticateUser(string login, string password)
+        public async Task<string?> AuthenticateUser(string login, string password)
         {
-            if (validUsers.ContainsKey(login) && validUsers[login].Password == password)
+            var encryptedPass = await encriptionService.EncryptAsync(login, password);
+
+            if (validUsers.ContainsKey(login) && validUsers[login].Password == encryptedPass)
             {
                 string sessionId = Guid.NewGuid().ToString();
                 sessions[sessionId] = validUsers[login];
