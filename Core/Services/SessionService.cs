@@ -1,43 +1,20 @@
 ﻿using Core.Interfaces;
 using Core.Models;
+using Domain.Interfaces;
 
 namespace Core.Services
 {
     public class SessionService : ISessionService
     {
-        private const string FILE_PATH = "Data.txt";
-
         private Dictionary<string, User> sessions = new Dictionary<string, User>();
-        private Dictionary<string, User> validUsers = new Dictionary<string, User>();
 
         private readonly IEncryptionService encriptionService;
+        private readonly IUserRepository userRepository;
 
-        public SessionService(IEncryptionService encriptionService, string filePath = FILE_PATH)
+        public SessionService(IEncryptionService encriptionService, IUserRepository userRepository)
         {
             this.encriptionService = encriptionService;
-
-            try
-            {
-                LoadUsers(filePath);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failure to open file:  {ex}");
-            }
-        }
-
-        private void LoadUsers(string filePath)
-        {
-            foreach (var line in File.ReadLines(filePath))
-            {
-                var parts = line.Split(',');
-                if (parts.Length == 2)
-                {
-                    var login = parts[0].Trim();
-                    var password = parts[1].Trim();
-                    validUsers[login] = new User(login, password);
-                }
-            }
+            this.userRepository = userRepository;
         }
 
         public bool IsSessionActive(string sessionId)
@@ -48,17 +25,14 @@ namespace Core.Services
         public async Task<string?> AuthenticateUser(string login, string password)
         {
             var encryptedPass = await encriptionService.EncryptAsync(login, password);
+            if (encryptedPass == null) return null;
 
-            if (validUsers.ContainsKey(login) && validUsers[login].Password == encryptedPass)
-            {
-                string sessionId = Guid.NewGuid().ToString();
-                sessions[sessionId] = validUsers[login];
-                return sessionId;
-            }
-            else
-            {
-                return null;
-            }
+            var user = await userRepository.Get(login, encryptedPass!);
+            if (user == null) return null;
+
+            string sessionId = Guid.NewGuid().ToString();
+            sessions[sessionId] = new User(user);
+            return sessionId;
         }
 
         public bool DeleteSession(string sessionId)

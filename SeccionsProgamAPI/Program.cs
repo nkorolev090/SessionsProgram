@@ -1,10 +1,13 @@
 using Core.Interfaces;
 using Core.Services;
+using Domain.Interfaces;
+using Domain.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
+builder.Services.AddSingleton<IUserRepository, UserRepository>(provides => new UserRepository(connectionString!));
 builder.Services.AddSingleton<ISessionService, SessionService>();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 
