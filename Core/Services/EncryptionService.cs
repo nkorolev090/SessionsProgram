@@ -1,13 +1,9 @@
-﻿using System.Security.Cryptography;
+﻿using Core.Interfaces;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Core.Services
 {
-    public interface IEncryptionService
-    {
-        Task<string?> EncryptAsync(string clearText, string passphrase);
-    }
-
     public class EncryptionService: IEncryptionService
     {
         private byte[] IV =

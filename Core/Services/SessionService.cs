@@ -1,16 +1,8 @@
-﻿using Core.Models;
+﻿using Core.Interfaces;
+using Core.Models;
 
 namespace Core.Services
 {
-    public interface ISessionService
-    {
-        bool IsSessionActive(string sessionId);
-
-        Task<string?> AuthenticateUser(string login, string password);
-
-        bool DeleteSession(string sessionId);
-    }
-
     public class SessionService : ISessionService
     {
         private const string FILE_PATH = "Data.txt";

@@ -1,4 +1,4 @@
-using Core.Services;
+using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using SeccionsProgamAPI.Models;
 
@@ -59,7 +59,7 @@ namespace SeccionsProgamAPI.Controllers
 
                 if (result)
                 {
-                    return NoContent();
+                    return Ok();
                 }
                 else
                 {
